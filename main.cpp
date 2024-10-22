@@ -1,6 +1,6 @@
-#include <iostream>
+#include "include/common.h"
+#include "core/Thread.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
     return 0;
 }

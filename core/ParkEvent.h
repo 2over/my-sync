@@ -4,6 +4,7 @@
 
 #ifndef MY_SYNC_PARKEVENT_H
 #define MY_SYNC_PARKEVENT_H
+
 #include "../include/common.h"
 
 class Thread;
@@ -14,9 +15,9 @@ private:
      * 锁状态: 0未锁   1已锁
      */
     int _state;
-    Thread*         _owner;
+    Thread *_owner;
     pthread_mutex_t _lock[1];
-    pthread_cond_t  _cond[1];
+    pthread_cond_t _cond[1];
 
 public:
     ParkEvent() {
@@ -31,8 +32,21 @@ public:
         assert(status == 0, "cond init fail");
     }
 
+    ParkEvent(Thread *owner) {
+        int status;
+        _owner = owner;
+        _state = 0;
+
+        status = pthread_mutex_init(_lock, NULL);
+        assert(status == 0, "mutex init fail");
+
+        status = pthread_cond_init(_cond, NULL);
+        assert(status == 0, "cond init fail");
+    }
+
 public:
     void park();
+
     void unpark();
 
     int state() {
@@ -40,6 +54,7 @@ public:
     }
 
     void lock();
+
     void unlock();
 };
 

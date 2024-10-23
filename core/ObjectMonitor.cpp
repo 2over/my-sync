@@ -222,5 +222,22 @@ void ObjectMonitor::DequeueSpecificWaiter(ObjectWaiter *node) {
     // when the waiter has woken up because of interrupt,
     // timeout or other spurious wake-up, dequeue the waiter from waiting list
 
-    ObjectWaiter* next = node ->_next;
+    ObjectWaiter *next = node->_next;
+    if (next == node) {
+        assert(node->_prev == node, "invariant check");
+        _WaitSet = NULL;
+    } else {
+        ObjectWaiter *prev = node->_prev;
+        assert(prev->_next == node, "invariant check");
+        assert(next->_prev == node, "invariant check");
+
+        next->_prev = prev;
+        prev->_next = next;
+        if (_WaitSet == node) {
+            _WaitSet = next;
+        }
+
+    }
+    node->_next = NULL;
+    node->_prev = NULL;
 }

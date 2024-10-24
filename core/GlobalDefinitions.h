@@ -1,0 +1,8 @@
+//
+// Created by xiehao on 2024/10/24.
+//
+
+#ifndef MY_SYNC_GLOBALDEFINITIONS_H
+#define MY_SYNC_GLOBALDEFINITIONS_H
+
+#endif //MY_SYNC_GLOBALDEFINITIONS_H

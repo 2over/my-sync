@@ -134,8 +134,88 @@ public:
         return (has_bias_pattern() && (biased_locker() == NULL));
     }
 
+    /**
+     * 从对象头取出epoch的值
+     */
     int bias_epoch() const {
-        INFO_PRINT("%X\n", mask_bits(value()))
+
+        INFO_PRINT("%X\n", mask_bits(value(), epoch_mask_in_place));
+        INFO_PRINT("%X\n", epoch_shift);
+
+        assert(has_bias_pattern(), "should not call this otherwise");
+
+        /**
+         * epoch_mask_in_place 300 0011 0 000 0 000
+         * epoch_shift 8
+         */
+        return (mask_bits(value(), epoch_mask_in_place) >> epoch_shift);
+    }
+
+    int get_epoch() {
+        /**
+         * 0    1
+         * 1    2
+         * 2    3
+         * 3    0
+         * ......
+         *
+         * 为什么与4求余, 因为epoch的区间是0-3
+         */
+        return (bias_epoch() + 1) % 4;
+    }
+
+    /**
+     * 修改对象头中epoch的值
+     * @param epoch
+     * @return
+     */
+    markOop set_bias_epoch(int epoch) {
+        INFO_PRINT("%X\n", epoch_mask);
+        INFO_PRINT("%X\n", ~epoch_mask);
+        INFO_PRINT("%X\n", epoch & (~epoch_mask));
+
+        assert(has_bias_pattern(), "should not call this otherwise");
+
+        // 这个判断是为了传入的参数epoch是否越界，epoch只占两成，取值范围为0-3
+        assert((epoch & (~epoch_mask)) == 0, "epoch overflow");
+
+        return markOop(mask_bits(value(), ~epoch_mask_in_place | (epoch << epoch_shift)));
+    }
+
+    markOop incr_bias_epoch() {
+        return set_bias_epoch((1 + bias_epoch()) & epoch_mask);
+    }
+
+    static markOop biased_locking_prototype() {
+        return markOop(biased_lock_pattern);
+    }
+
+    /**
+     * mark的最后2位 != 01
+     * 言外之意就是轻量级锁/重量级锁时返回true
+     *
+     */
+    bool is_locked() const {
+        INFO_PRINT("%X\n", lock_mask_in_place);
+        INFO_PRINT("%X\n", unlocked_value);
+
+        /**
+         * lock_mask_in_place 3 0011
+         * unlocked_value 1 0001
+         */
+        return (mask_bits(value(), lock_mask_in_place) != unlocked_value);
+    };
+
+    /**
+     * mark的最后3位 == 001
+     * 言外之意就是无锁时返回true
+     * @return
+     */
+    bool is_unlocked() const {
+        /**
+         * biased_lock_mask_in_place 7 0111
+         */
+        return (mask_bits(value(), biased_lock_mask_in_place) == unlocked_value);
     }
 
 

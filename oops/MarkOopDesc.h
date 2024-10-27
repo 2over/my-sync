@@ -218,6 +218,183 @@ public:
         return (mask_bits(value(), biased_lock_mask_in_place) == unlocked_value);
     }
 
+    /**
+     * mark的最后2位 == 11
+     * @return
+     */
+    bool is_marked() const {
+        INFO_PRINT("%X\n", lock_mask_in_place);
+
+
+        /**
+         * lock_mask_in_place 3 0011
+         * marked_value 3   011
+         *
+         */
+        return (mask_bits(value(), lock_mask_in_place) == marked_value);
+    }
+
+    /**
+     * mark最后3位 == 001
+     * 言外之意就是无锁时返回true
+     * 与is_unlocked一模一样
+     * @return
+     */
+    bool is_neutral() const {
+        /**
+         * biased_lock_mask_in_place 7 0111
+         * unlocked_value 1 0001
+         */
+        return (mask_bits(value(), biased_lock_mask_in_place) == unlocked_value);
+    }
+
+    /**
+     * 正在进行膨胀
+     * @return
+     */
+    bool is_being_inflated() const {
+        return (value() == 0);
+    }
+
+    /**
+     * 后两位置为1
+     * @return
+     */
+    markOop set_unlocked() const {
+        return markOop(value() | unlocked_value);
+    }
+
+    /**
+     * 后两位为00时返回true
+     * 言外之意: 轻量级
+     * @return
+     */
+    bool has_locker() const {
+        return ((value() & lock_mask_in_place) == locked_value);
+    }
+
+    /**
+     * 获取轻量级锁
+     * @return
+     */
+    BasicLock* locker() const {
+        assert(has_locker(), "check");
+        return (BasicLock*) value();
+    }
+
+    /**
+     * 判断是不是重量级锁
+     * @return
+     */
+    bool has_monitor() const {
+        return ((value() & monitor_value) != 0);
+    }
+
+    ObjectMonitor* monitor() const {
+        assert(has_monitor(), "check");
+        // Use xor instead of &~ to provide one extra tag-bit check
+        return (ObjectMonitor*)(value() ^ monitor_value);
+    }
+
+    bool has_displaced_mark_helper() const {
+        /**
+         * unlocked_value 1
+         */
+        return ((value() & unlocked_value) == 0);
+    }
+
+    markOop displaced_mark_helper() const {
+        assert(has_displaced_mark_helper(), "check");
+        intptr_t ptr = (value() & ~monitor_value);
+        return *(markOop*)ptr;
+    }
+
+    void set_displaced_mark_helper(markOop m) const {
+        assert(has_displaced_mark_helper(), "check");
+        intptr_t ptr = (value() & ~monitor_value);
+        *(markOop*)ptr = m;
+    }
+
+    markOop copy_set_hash(intptr_t hash) const {
+        intptr_t tmp = value() & (~hash_mask_in_place);
+        tmp |= ((hash & hash_mask) << hash_shift);
+        return (markOop)tmp;
+    }
+
+    static markOop unused_mark() {
+        return (markOop) marked_value;
+    }
+
+    static markOop encode(BasicLock* lock) {
+        return (markOop)lock;
+    }
+
+    static markOop encode(ObjectMonitor* monitor) {
+        intptr_t tmp = (intptr_t)monitor;
+        return (markOop) (tmp | monitor_value);
+    }
+
+    static markOop encode(Thread* thread, uint age, int bias_epoch) {
+        intptr_t tmp = (intptr_t) thread;
+        assert(UseBiasedLocking && ((tmp & (epoch_mask_in_place | age_mask_in_place | biased_lock_mask_in_place)) == 0),
+                "misaligned JavaThread Pointer");
+
+        assert(age <= max_age, "age too large");
+        assert(bias_epoch <= max_bias_epoch, "bias epoch too large");
+
+        return (markOop)(tmp | (bias_epoch << epoch_shift) | (age << age_shift) | biased_lock_pattern);
+    }
+
+    static markOop encode_nonblock(Thread* thread, uint age, int bias_epoch) {
+        intptr_t tmp = (intptr_t) thread;
+        return (markOop) (tmp | (bias_epoch << epoch_shift) | (age << age_shift) | unlocked_value);
+    }
+
+    // used to encode pointers during GC
+    markOop clear_lock_bits() {
+        return markOop(value() & ~lock_mask_in_place);
+    }
+
+    // age operations
+    markOop set_marked() {
+        return markOop((value() & ~lock_mask_in_place) | marked_value);
+    }
+
+    markOop set_unmarked() {
+        return markOop((value() & ~lock_mask_in_place) | unlocked_value);
+    }
+
+    uint age() const {
+        return mask_bits(value() >> age_shift, age_mask);
+    }
+
+    markOop set_age(uint v) const {
+        assert((v & ~age_mask) == 0, "shouldn't overflow age field");
+        return markOop((value() & ~age_mask_in_place) | (((uintptr_t)v & age_mask) << age_shift));
+    }
+
+    markOop incr_age() const {
+        return age() == max_age ? markOop(this) : set_age(age() + 1);
+    }
+
+    // hash operations
+    intptr_t hash() const {
+        return mask_bits(value() >> hash_shift, hash_mask);
+    }
+
+    bool has_no_hash() const {
+        return hash() == no_hash;
+    }
+
+    static markOop INFLATING() {
+        return (markOop) 0;
+    }
+
+public:
+    // Prototype mark for initialization
+    static markOop prototype() {
+        return markOop(no_hash_in_place | no_lock_in_place);
+    }
 
 };
 

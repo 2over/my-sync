@@ -3,3 +3,9 @@
 //
 
 #include "InstanceOopDesc.h"
+#include "MarkOopDesc.h"
+
+InstanceOopDesc::InstanceOopDesc(Klass *klass) {
+    _klass = klass;
+    _mark = MarkOopDesc::biased_locking_prototype();
+}

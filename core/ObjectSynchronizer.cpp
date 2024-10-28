@@ -4,5 +4,8 @@
 
 #include "ObjectSynchronizer.h"
 #include "../include/common.h"
-#include "../oops/InstanceoopDesc.h"
+#include "../oops/InstanceOopDesc.h"
+#include "BasicLock.h"
+
+
 

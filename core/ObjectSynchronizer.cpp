@@ -183,5 +183,31 @@ ObjectMonitor *ObjectSynchronizer::inflate(InstanceOopDesc *obj, Thread *t) {
     }
 }
 
+void ObjectSynchronizer::wait(InstanceOopDesc *obj, Thread *t) {
+    if (UseBiasedLocking) {
+        INFO_PRINT("[%s] wait  撤销偏向锁\n", t->name());
+        BiasedLocking::revoke_and_rebias(obj, false, t);
+        assert(!obj->mark()->has_bias_pattern(), "biases should be revoked by now");
+    }
+
+    ObjectMonitor *monitor = ObjectSynchronizer::inflate(obj, t);
+
+    monitor->wait(t);
+}
+
+void ObjectSynchronizer::notify(InstanceOopDesc *obj, Thread *t) {
+    if (UseBiasedLocking) {
+        INFO_PRINT("[%s] wait 撤销偏向锁\n", t->name());
+
+        BiasedLocking::revoke_and_rebias(obj, false, t);
+        assert(!obj->mark()->has_bias_pattern(), "biases should be revoked by now");
+    }
+
+    ObjectMonitor *monitor = ObjectSynchronizer::inflate(obj, t);
+
+    monitor->notify();
+
+}
+
 
 

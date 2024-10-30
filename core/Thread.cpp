@@ -6,7 +6,7 @@
 #include "Monitor.h"
 #include "ObjectMonitor.h"
 #include "ParkEvent.h"
-
+#include "Atomic.h"
 extern ObjectMonitor* monitor;
 
 ParkEvent* Thread::_MainThreadEvent = new ParkEvent;

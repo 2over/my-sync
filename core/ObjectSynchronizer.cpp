@@ -90,6 +90,45 @@ void ObjectSynchronizer::fast_exit(InstanceOopDesc *obj, BasicLock *lock, Thread
 
 }
 
+/**
+ * 进入这个函数的情况:
+ * 1.偏向锁未开启
+ * 2.延迟偏向期间执行加锁
+ * 3.重入
+ */
+void ObjectSynchronizer::slow_enter(InstanceOopDesc *obj, BasicLock* lock, Thread* t) {
+    markOop mark = obj->mark();
+    assert(!mark->has_bias_pattern(), "should not see bias pattern here");
+    if (mark->is_neutral()) {
+        lock->set_displaced_header(mark);
+
+        if (mark == Atomic::cmpxchg_ptr(lock, obj->mark_addr(), mark)) {
+            INFO_PRINT("[%s] 轻量级锁抢锁成功\n", t->name());
+
+            // 这个HotSpot源码中没有, 为了判断重入加的
+            lock->set_owner(t);
+
+            return ;
+        }
+    } else {
+        // 轻量级锁 且 持有轻量级锁的线程是当前线程
+        if (mark && mark->has_locker() && t == mark->locker()->owner()) {
+            assert(lock != mark->locker(), "must not re-lock the same lock");
+            assert(lock != (BasicLock*) obj->mark(), "don't relock with same BasicLock");
+
+            // 为什么要将BasicLock._displaced_header置为NULL
+            lock->set_displaced_header(NULL);
+            return ;
+        }
+     }
+
+    INFO_PRINT("[%s] 轻量级锁抢锁失败\n", t->name());
+
+    // HotSpot中的这句代码，没太明白意图
+    lock->set_displaced_header(MarkOopDesc::unused_mark());
+
+    ObjectSynchronizer::inflate(obj, t)->enter(t);
+}
 void ObjectSynchronizer::slow_exit(InstanceOopDesc *obj, BasicLock *lock, Thread *t) {
     fast_exit(obj, lock, t);
 }

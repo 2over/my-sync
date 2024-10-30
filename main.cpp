@@ -37,9 +37,32 @@ void* thread_do_2(void *arg) {
     ObjectSynchronizer::fast_enter(obj, lock, Self);
 
     for (int i = 0; i < 3; i++) {
-
+        INFO_PRINT("[%s] %d\n", Self->name(), i);
+        usleep(100);
     }
+
+    // 出临界区
+    ObjectSynchronizer::fast_exit(obj, lock, Self);
+
+    return 0;
 }
 int main() {
+
+    Thread* t1 = new Thread(thread_do_1, NULL, "t1");
+    Thread* t2 = new Thread(thread_do_2, NULL, "t2");
+    Thread* t3 = new Thread(thread_do_2, NULL, "t3");
+    Thread* t4 = new Thread(thread_do_2, NULL, "t4");
+    Thread* t5 = new Thread(thread_do_2, NULL, "t5");
+    Thread* t6 = new Thread(thread_do_2, NULL, "t6");
+    Thread* t7 = new Thread(thread_do_2, NULL, "t7");
+
+    t1->run();
+    t2->run();
+    t3->run();
+    t4->run();
+    t5->run();
+    t6->run();
+    t7->run();
+
     return 0;
 }

@@ -4,7 +4,6 @@
 #include "core/ObjectMonitor.h"
 #include "core/ObjectSynchronizer.h"
 #include "oops/InstanceOopDesc.h"
-#include "core/BiasedLocking.h"
 #include "core/BasicLock.h"
 #include "oops/Klass.h"
 
@@ -46,7 +45,7 @@ void* thread_do_2(void *arg) {
 
     return 0;
 }
-int main() {
+void* main_thread_do(void* args) {
 
     Thread* t1 = new Thread(thread_do_1, NULL, "t1");
     Thread* t2 = new Thread(thread_do_2, NULL, "t2");
@@ -64,5 +63,15 @@ int main() {
     t6->run();
     t7->run();
 
+
+    t1->join();
+
+    return 0;
+}
+
+int main() {
+    pthread_t tid;
+    pthread_create(&tid, NULL, main_thread_do, NULL);
+    pthread_join(tid, NULL);
     return 0;
 }

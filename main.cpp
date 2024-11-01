@@ -45,6 +45,9 @@ void* thread_do_2(void *arg) {
 
     return 0;
 }
+
+ParkEvent* main_thread_event = new ParkEvent;
+
 void* main_thread_do(void* args) {
 
     Thread* t1 = new Thread(thread_do_1, NULL, "t1");

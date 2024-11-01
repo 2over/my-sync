@@ -11,7 +11,7 @@ void ParkEvent::park() {
     pthread_mutex_lock(_lock);
     _state = 1;
 
-    INFO_PRINT("[%s] 完成初始化\n", _owner->name());
+//    INFO_PRINT("[%s] 完成初始化\n", _owner->name());
     _owner->set_state(INITIALIZED);
 
     pthread_cond_wait(_cond, _lock);

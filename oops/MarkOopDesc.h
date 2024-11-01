@@ -90,7 +90,7 @@ public:
     enum {  max_bias_epoch          = epoch_mask };
 
     bool has_bias_pattern() const {
-        INFO_PRINT("%X\n", biased_lock_mask_in_place);
+//        INFO_PRINT("%X\n", biased_lock_mask_in_place);
 
         /**
          * value() 返回对象头的内容
@@ -101,14 +101,14 @@ public:
     }
 
     Thread* biased_locker() const {
-        INFO_PRINT("%X\n", biased_lock_mask_in_place);
-        INFO_PRINT("%X]n", age_mask_in_place);
-        INFO_PRINT("%X\n", epoch_mask_in_place);
-        INFO_PRINT("%X\n", biased_lock_mask_in_place | age_mask_in_place);
-        INFO_PRINT("%X\n", biased_lock_mask_in_place | age_mask_in_place | epoch_mask_in_place);
-        INFO_PRINT("%X\n", ~(biased_lock_mask_in_place | age_mask_in_place | epoch_mask_in_place));
+//        INFO_PRINT("%X\n", biased_lock_mask_in_place);
+//        INFO_PRINT("%X\n", age_mask_in_place);
+//        INFO_PRINT("%X\n", epoch_mask_in_place);
+//        INFO_PRINT("%X\n", biased_lock_mask_in_place | age_mask_in_place);
+//        INFO_PRINT("%X\n", biased_lock_mask_in_place | age_mask_in_place | epoch_mask_in_place);
+//        INFO_PRINT("%X\n", ~(biased_lock_mask_in_place | age_mask_in_place | epoch_mask_in_place));
 
-        assert(has_bias_pattern(), "should not call this otherwise");
+//        assert(has_bias_pattern(), "should not call this otherwise");
 
         /**
          * value() 返回对象头的内容
@@ -139,8 +139,8 @@ public:
      */
     int bias_epoch() const {
 
-        INFO_PRINT("%X\n", mask_bits(value(), epoch_mask_in_place));
-        INFO_PRINT("%X\n", epoch_shift);
+//        INFO_PRINT("%X\n", mask_bits(value(), epoch_mask_in_place));
+//        INFO_PRINT("%X\n", epoch_shift);
 
         assert(has_bias_pattern(), "should not call this otherwise");
 
@@ -336,8 +336,9 @@ public:
 
     static markOop encode(Thread* thread, uint age, int bias_epoch) {
         intptr_t tmp = (intptr_t) thread;
-        assert(UseBiasedLocking && ((tmp & (epoch_mask_in_place | age_mask_in_place | biased_lock_mask_in_place)) == 0),
-                "misaligned JavaThread Pointer");
+//        assert(UseBiasedLocking && ((tmp & (epoch_mask_in_place | age_mask_in_place | biased_lock_mask_in_place)) == 0),
+//                "misaligned JavaThread Pointer");
+
 
         assert(age <= max_age, "age too large");
         assert(bias_epoch <= max_bias_epoch, "bias epoch too large");

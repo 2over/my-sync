@@ -26,7 +26,7 @@ public:
         _state = 0;
 
         status = pthread_mutex_init(_lock, NULL);
-        assert(status = 0, "mutex init fail");
+        assert(status == 0, "mutex init fail");
 
         status = pthread_cond_init(_cond, NULL);
         assert(status == 0, "cond init fail");

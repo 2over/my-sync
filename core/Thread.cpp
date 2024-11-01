@@ -14,13 +14,13 @@ ParkEvent* Thread::_MainThreadEvent = new ParkEvent;
 void* thread_run(void* arg) {
     Thread* t = static_cast<Thread *>(arg);
 
-    INFO_PRINT("[%s] 等待创建线程工作完成\n", t->name());
+//    INFO_PRINT("[%s] 等待创建线程工作完成\n", t->name());
 
     Monitor* sync = t->startThread_lock();
 
     sync->wait(t);
 
-    INFO_PRINT("[%s] 创建工作已完成，线程被唤醒\n", t->name());
+//    INFO_PRINT("[%s] 创建工作已完成，线程被唤醒\n", t->name());
 
     // 执行业务逻辑
     t->entry_point()(t);
@@ -55,7 +55,7 @@ void Thread::run() {
     assert(NULL != _entry_point, "entry point is null");
     while (true) {
         if (INITIALIZED == get_state()) {
-            INFO_PRINT("[notify] 创建线程工作已完成,尝试唤醒线程\n");
+//            INFO_PRINT("[notify] 创建线程工作已完成,尝试唤醒线程\n");
 
             set_state(RUNNABLE);
 
@@ -63,7 +63,7 @@ void Thread::run() {
 
             break;
         } else {
-            INFO_PRINT("[%s] 等待线程完成初始化 %d\n", name(), get_state());
+//            INFO_PRINT("[%s] 等待线程完成初始化 %d\n", name(), get_state());
         }
     }
 }

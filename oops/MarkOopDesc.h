@@ -179,7 +179,7 @@ public:
         // 这个判断是为了传入的参数epoch是否越界，epoch只占两成，取值范围为0-3
         assert((epoch & (~epoch_mask)) == 0, "epoch overflow");
 
-        return markOop(mask_bits(value(), ~epoch_mask_in_place | (epoch << epoch_shift)));
+        return markOop(mask_bits(value(), ~epoch_mask_in_place) | (epoch << epoch_shift));
     }
 
     markOop incr_bias_epoch() {

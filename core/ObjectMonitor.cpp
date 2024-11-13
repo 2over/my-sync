@@ -16,12 +16,14 @@ void ObjectMonitor::enter(Thread *t) {
 
     void *ret = NULL;
 
+    // 1. CAS抢锁
     if (NULL == (ret = Atomic::cmpxchg_ptr(t, &_owner, NULL))) {
         INFO_PRINT("[%s] 抢到了锁\n", t->name());
 
         return;
     }
 
+    // 2.重入
     if (t == ret) {
         _recursions++;
 
@@ -30,7 +32,7 @@ void ObjectMonitor::enter(Thread *t) {
 
     INFO_PRINT("[%s] 抢锁失败\n", t->name());
 
-    // 加入独列
+    // 3.加入队列
     ObjectWaiter node(t);
     node._prev = reinterpret_cast<ObjectWaiter *>(0xBAD);
 
@@ -44,7 +46,7 @@ void ObjectMonitor::enter(Thread *t) {
         }
     }
 
-    // 阻塞
+    // 4.阻塞
     INFO_PRINT("[%s] 阻塞等待\n", t->name());
 
     t->_ParkEvent->park();
@@ -65,7 +67,7 @@ void ObjectMonitor::exit(Thread *t) {
         return;
     }
 
-    // 处理冲入
+    // 处理重入
     if (0 != _recursions) {
         _recursions--;
         return;

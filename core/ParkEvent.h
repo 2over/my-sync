@@ -20,6 +20,7 @@ private:
     pthread_cond_t _cond[1];
 
 public:
+    // 巧妙的用法: 析构函数中去释放锁, 然后在代码块中上锁
     ParkEvent() {
         int status;
 

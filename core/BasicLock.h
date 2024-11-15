@@ -13,6 +13,9 @@ class Thread;
 class BasicLock {
 private:
     markOop     _displaced_header;
+    // 在HotSpot中,在判断轻量级锁重入的时候，还额外地判断了下
+    // 锁对象是否在线程栈里，有点复杂化了，这里额外增加了一个持有锁的线程属性
+    // 比较方便地判断重入
     Thread*     _owner;
 
 public:

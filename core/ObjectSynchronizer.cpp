@@ -45,7 +45,7 @@ void ObjectSynchronizer::fast_exit(InstanceOopDesc *obj, BasicLock *lock, Thread
     if (NULL == dhw) {
         mark = obj->mark();
 
-        // 处理冲入的，逻辑未写
+        // 处理重入的，逻辑未写
 
         // 偏向锁膨胀成重量级锁也会走到这里来
         if (mark->has_monitor()) {

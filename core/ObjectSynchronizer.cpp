@@ -102,6 +102,8 @@ void ObjectSynchronizer::slow_enter(InstanceOopDesc *obj, BasicLock* lock, Threa
     if (mark->is_neutral()) {
         lock->set_displaced_header(mark);
 
+        // 这里其实应该对之前持有偏向锁的线程，应该做处理，让其进行阻塞
+        // 但是当前项目中没有做处理，而是偏向锁线程继续执行
         if (mark == Atomic::cmpxchg_ptr(lock, obj->mark_addr(), mark)) {
             INFO_PRINT("[%s] 轻量级锁抢锁成功\n", t->name());
 

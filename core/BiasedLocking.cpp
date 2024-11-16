@@ -56,7 +56,7 @@ BiasedLocking::Condition BiasedLocking::revoke_and_rebias(InstanceOopDesc *obj, 
 
         /**
          * 走到这里有两种情况:
-         * 1.已经有先车祸嗯持有了偏向锁,且klass.epoch == oop.epoch 需要膨胀成轻量级锁
+         * 1.已经有线程持有了偏向锁,且klass.epoch == oop.epoch 需要膨胀成轻量级锁
          * 2.第一次获取到偏向锁
          */
 
